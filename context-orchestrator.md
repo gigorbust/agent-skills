@@ -127,3 +127,158 @@ Before every response:
 - **Quick tasks**: Claude Haiku
 - **Research**: Perplexity Sonar Pro
 - **Agentic**: Grok 4 Fast Reasoning
+
+---
+
+## Smart Tool Selection Matrix
+
+### Keyword → Tool Mapping
+
+| Keyword Pattern | Best Tool(s) | Priority |
+|-----------------|--------------|----------|
+| SEO, keyword, ranking, SERP | `seo-specialist` skill, `exa` MCP | 1 |
+| content, blog, pillar, article | `meztal-seo-content` skill, `/meztal-content` | 1 |
+| Wix, CMS, collection, page | `wix-data` MCP, `wix-mcp` | 1 |
+| compliance, audit, check | `/meztal-audit`, hooks | 1 |
+| task, next, status | `/tm-next`, `task-master-ai` | 1 |
+| code, implement, feature | `tdd-cycle` skill, `code-reviewer` | 2 |
+| bug, error, fix | `systematic-debugging` skill | 2 |
+| research, analyze, compare | `exa` MCP, `data-analyst` agent | 2 |
+| competitor, market | `competitive-analyst` agent | 2 |
+| git, branch, merge, commit | `git-wizard` skill | 2 |
+| plan, design, architect | `writing-plans` skill, `plan-architect` | 2 |
+| document, readme, guide | `technical-writer` agent | 3 |
+| prompt, AI, generate | `prompt-engineer` agent | 3 |
+| parallel, agent, orchestrate | `dispatching-parallel-agents` skill | 3 |
+
+### Context Priority Order
+
+For every request, check in this order:
+1. **Project Files** → MASTER_REGISTRY.json, tasks.json
+2. **Memory** → mcp__memory__search_nodes for stored context
+3. **Recent Files** → What was recently modified
+4. **Codebase** → Glob/Grep for patterns
+5. **Web** → Exa search for external info
+
+### Subagent Selection Logic
+
+```
+IF request contains ("SEO" OR "keyword" OR "ranking"):
+    USE: search-specialist agent, seo-specialist skill
+
+IF request contains ("content" OR "blog" OR "article"):
+    USE: content-marketer agent, meztal-seo-content skill
+    CHECK: MASTER_REGISTRY.json first
+
+IF request contains ("competitor" OR "market"):
+    USE: competitive-analyst agent, market-researcher agent
+
+IF request contains ("data" OR "analyze" OR "metrics"):
+    USE: data-analyst agent
+
+IF request contains ("code" OR "implement" OR "build"):
+    USE: tdd-cycle skill, verification-before-completion
+
+IF request contains ("document" OR "readme" OR "guide"):
+    USE: technical-writer agent, document-generator skill
+```
+
+### MCP Server Priority
+
+| Server | Auto-Use When |
+|--------|---------------|
+| `memory` | ALWAYS - check stored context first |
+| `wix-data` | Any Wix/CMS operation |
+| `exa` | Research, search, external info |
+| `github` | Repos, PRs, issues |
+| `playwright` | Browser automation, screenshots |
+| `sequential-thinking` | Complex multi-step reasoning |
+
+### Slash Command Quick Reference
+
+| Command | Use Case |
+|---------|----------|
+| `/meztal-content [keyword]` | Generate compliant SEO content |
+| `/meztal-audit [file]` | Compliance + quality check |
+| `/tm-next` | Get and start next task |
+| `/session-end [summary]` | Clean commit + push |
+
+### Automatic Pre-Checks (MezTal)
+
+Before ANY content creation:
+```
+1. grep -i "[keyword]" MASTER_REGISTRY.json → Duplicate check
+2. mcp__memory__search_nodes("Compliance") → Get rules
+3. Read CLAUDE-AI-WORK/IDEAS_LOG.md → Recent discoveries
+```
+
+Before ANY Wix operation:
+```
+1. mcp__wix-mcp__WixREADME → Get current docs
+2. Check Site ID: 24c6a184-1fd5-4b8c-ade1-8f2dae9c8f9e
+```
+
+### Parallel Execution Rules
+
+Execute in PARALLEL when:
+- Multiple independent file reads
+- Multiple independent searches
+- Multiple MCP queries to different servers
+- Research + planning (no dependencies)
+
+Execute SEQUENTIALLY when:
+- File read → then edit
+- Search → then action based on results
+- Plan → then implement
+- Create → then verify
+
+---
+
+## Feature Decision Framework
+
+### Core 4 Fundamentals
+Every agentic feature is built on: **Context, Model, Prompt, Tools**
+- Prompts are the primitive - everything is tokens in/tokens out
+- Start simple, add complexity only when needed
+
+### When to Use Each Feature
+
+| Feature | Trigger | Context | Best For |
+|---------|---------|---------|----------|
+| **Skill** | Auto (agent decides) | Progressive disclosure (efficient) | Automatic behavior, repeat expertise, managing resources |
+| **Sub-Agent** | Agent delegation | Isolated (lost after task) | Parallel tasks, scale, isolation, context loss OK |
+| **MCP Server** | Explicit integration | Heavy (loads on bootup) | External APIs, databases, bundled services |
+| **Slash Command** | Manual (user invokes) | Direct injection | One-off tasks, simple prompts, manual compute |
+
+### Decision Quiz
+
+| Scenario | Use | Why |
+|----------|-----|-----|
+| Extract text from PDFs | Skill | Automatic behavior |
+| Connect to Jira/DB | MCP | External integration |
+| Security audit at scale | Sub-agent | Scale, isolation, context not needed after |
+| Git commit message | Slash Command | Simple one-step task |
+| Fix/debug tests at scale | Sub-agent | Scale and isolation |
+| Detect style violations | Skill | Encoding repeat behavior |
+| Fetch real-time data | MCP | Third-party API |
+| Create UI component | Slash Command | One-off task |
+| **Anything parallel** | Sub-agent | ONLY feature with parallelization |
+
+### Hierarchy of Composition
+```
+Skills (Top) → Can bundle Commands, Sub-agents, MCPs
+    ↓
+Slash Commands (Middle) → Closest to bare metal
+    ↓
+MCP Servers (Low) → Connectors below skills
+```
+
+### Anti-Patterns (Don't Do This)
+- ❌ Replacing simple Slash Commands with Skills
+- ❌ Building Skill/Sub-agent when Prompt suffices
+- ❌ Using Skills for one-off tasks
+
+### Best Practice
+- Use Skills to **manage** problems (e.g., "Work Tree Manager" that lists/creates/removes)
+- Not just execute single tasks (e.g., "create one tree")
+- Skills = opinionated, file-system-based, domain expertise
