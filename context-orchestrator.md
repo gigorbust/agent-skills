@@ -31,6 +31,7 @@ For each user request, immediately identify:
 #### Skills to Chain
 | Skill | When to Trigger |
 |-------|-----------------|
+| `agentic-research` | Deep research, analysis, content synthesis, competitive analysis |
 | `meztal-seo-content` | Any SEO content creation for MezTal |
 | `task-master-ai` | Task planning, PRD parsing, next task |
 | `data-scientist` | Data analysis, cleaning, transformation |
